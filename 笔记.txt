@@ -1,0 +1,524 @@
+node -v
+10.14.1
+create-react-app@1.5.2
+yarn@1.2.1
+1.使用create-react-app脚手架创建一个react项目(后面跟项目名)：
+create-react-app jianshu
+按照提示，进入这个项目：
+cs jianshu
+yarn start
+
+2.项目中在一个js文件中引入了这个css文件，所有的组件内部的标签都可以使用这个css文件内的样式
+这样就不利于让每个组件单独的样式只对自己起作用，这时可以使用styled-components模块进行改写样式文件，达到这个目的
+2.1将.css结尾的样式文件改写成以.js结尾
+2.2在这个js文件中使用styled-components里面的一些方法，来指定哪些样式是全局的（所有组件都可以使用的），哪些是自己使用的
+
+公共的样式写法：
+import {injectGlobal} from 'styled-components';
+injectGlobal`body {
+	line-height: 1;
+}`;
+
+独立的样式写法：
+import styled from 'styled-components';
+export const HeaderWrapper=styled.div`
+height: 58px;
+`
+上面的意思是：HeaderWrapper是一个组件，它代表的是一个带有样式的div，可以被其他组件引用进行使用
+
+如果还想写属性的话，可以这样写：
+import styled from 'styled-components';
+export const HeaderWrapper=styled.div.attrs({
+href:''
+})`
+也可以在使用这个组件的时候直接在标签上写属性
+height: 58px;
+`
+
+当在标签上使用多个样式类时，与它们的先后顺序无关，只与样式类的定义先后有关
+
+3.reset.css:https://meyerweb.com/eric/tools/css/reset/
+使用reset.css好处：因为不同的浏览器对于标签的默认样式是不统一的，使用reset.css就能让不同的浏览器都有统一的样式
+
+4.修改input的placeholder样式：
+<input class='test'/>
+
+.test::placeholder {
+		color: #999;
+	}
+
+5.图标：iconfont.cn
+注册、登录
+
+创建图标库并下载图标的步骤：
+图标管理->选择“我的项目”->选择“文件夹图标”新建项目->填写项目名称、说明，点击确定
+搜索需要的图标，添加进购物车->点击“购物车图标”->选择“添加至项目”->选择项目->就会跳转这个项目，这时点击“下载至本地”即可
+解压压缩包，选择需要使用的文件（css文件和字体文件）添加到项目中进行开发即可
+
+如果不知道怎么使用，可以打开下载文件中的demo_unicode.html进行查看
+
+6.使用react-transition-group模块做动画效果:yarn add react-transition-group@2.3.1
+fade-enter会与fade-enter-active一起存在，所以transition这个css属性放在两个中哪一个样式类去写都可以
+
+7.使用React-Redux进行应用数据的管理（因为react本身对数据的管理能力有限，需要使用redux来进行管理）:
+yarn add redux@4.0.0
+
+redux是一个数据框架，使用react-redux模块可以方便我们使用redux框架：
+yarn add react-redux@5.0.7
+
+8.配置redux-devtools-extension，让浏览器中的redux插件能够使用，通过f12可以查看Redux面板，进行更方便的调试
+redux这个插件可以通过将进度拖到开始然后再点击播放按钮，可以重现之前的操作
+
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+const store = createStore(reducer, composeEnhancers(
+	applyMiddleware(thunk)
+));
+
+9.redux提供一个方法，可以用来组装reducer（意思就是说可以把一个大的reducer拆分成许多小的reducer，这样便于对数据进行分开管理）
+import { combineReducers } from 'redux';
+import { reducer as headerReducer } from '../common/header/store';
+import { reducer as homeReducer } from '../pages/home/store';
+import { reducer as detailReducer } from '../pages/detail/store';
+import { reducer as loginReducer } from '../pages/login/store';
+
+const reducer = combineReducers({
+	header: headerReducer,
+	home: homeReducer,
+	detail: detailReducer,
+	login: loginReducer
+});
+
+export default reducer;
+
+这时在Redux面板查看State数据时，就是分别隶属于不同小的reducer了
+
+10.优化代码写法：
+当需要从一个文件中引入另一个文件中的多个方法或者变量（常量）时，可以使用下面的写法：
+//引入多个创建action的方法
+import * as actionCreators from './actionCreators';
+//引入多个action类型的常量字符串
+import * as constants from './constants';
+
+例如这里的Header组件，其下面的store文件夹中管理的是其自身的一些数据，我们就可以把store里面的其他文件都在index.js文件
+中进行引入再导出的操作，这样做的好处是之后store文件夹之外的文件再需要引用store下面的资源的时候，只需要去引用index.js进行选择性引入就可以了
+例如：
+header\store\index.js:
+import reducer from './reducer';
+import * as actionCreators from './actionCreators';
+import * as constants from './constants';
+
+export { reducer, actionCreators, constants };
+
+这样做不仅只暴露出一个出口，而且在引用时由于是index.js文件，所以可以引用路径直接写到store文件夹就可以了，其会自动找到
+该文件夹下的index.js文件
+
+11.immutable.js
+facebook推出的一个js库：可以生成一个immutable对象（不可改变的对象）
+在reducer这个函数里面，我们不能对原有的state做修改，需要结合原有的state和action返回一个新的对象，所以这时候我们就可以把
+原有的state做成一个immutable对象
+
+安装immutable模块：
+yarn add immutable@3.8.2
+
+immutable模块提供一个fromJS方法把一个js对象转化成一个immutable对象
+
+如何使用immutable对象：
+1.首先引入immutable模块
+import {fromJS} from 'immutable';
+2.然后将初始数据通过fromJS转化成一个immutable对象
+将
+const defaultState = {
+	focused: false,
+	mouseIn: false,
+	list: [],
+	page: 1,
+	totalPage: 1
+};
+转化成
+const defaultState = fromJS({
+	focused: false,
+	mouseIn: false,
+	list: [],
+	page: 1,
+	totalPage: 1
+});
+3.reducer处理完数据后也返回一个immutable对象，因为在组件中使用转化为immutable对象的state时不能直接通过state.focused
+的形式获取值了，而需要使用state.get('focused')，所以为了不让组件中使用数据出错，reducer返回的也应该是一个immutable对象
+
+4.reducer中如何返回新的数据对象（而且还是一个immutable对象），此时state是一个immutable对象
+state.set('focused',true)
+
+immutable对象的set方法，会结合之前immutable对象的值和设置的值，返回一个全新的对象，这样就不会对原有的数据做修改了
+
+5.为什么要使用immutable
+因为不使用immutable，就得手动保证在reducer里面不会对原有state做修改，用了immutable，就避免了这个风险
+
+12.为了让组件中使用数据时不是下面的这种写法：
+state.header.get('focused')
+其实state是js对象，获取到的header是一个immutable对象，然后再调用immutable对象的get方法获取到数据
+
+现在，我们想让state也是一个immutable对象，好让获取数据时不是'.'运算符和get方法混用，这时可以借助redux-immutable模块实现
+yarn add redux-immutable@4.0.0
+
+这时去修改
+import { combineReducers } from 'redux';
+为
+import { combineReducers } from 'redux-immutable';
+这时候生成的reducer就是一个immutable对象了
+那么state.header.get('focused')就需要改成这样：state.get('header').get('focused')
+与state.get('header').get('focused')等价的另一种写法：
+state.getIn(['header','focused'])
+
+13.react只支持IE8以上的浏览器
+
+14.使用redux-thunk这个redux中间件去在action里面做异步请求
+
+15.create-react-app底层也是一个node的服务器，当访问localhost:3000/api/headerList.json的时候，它会先去工程目录下看
+有没有路由，如果找不到还会去public目录下查找，如果能找到就会返回那个文件
+
+在与后台同步开发过程中，前端可以使用这个特性，在public文件夹下创建一些文件存放假数据，便于开发调试；当项目真正上线时，
+再删除public这个文件夹下的内容，这样就会找不到对应的文件，从而通过路由去正确发起请求获取到正确的数据了
+
+16.当把一个普通的js对象变成一个immutable对象后，其里面的数组也会变成immutable数组
+
+通过下面的操作之后，list其实已经是一个immutable数组了
+const defaultState = fromJS({
+    focused: false,
+    mouseIn: false,
+    list: [],
+    page: 1,
+    totalPage: 1
+});
+
+所以后续通过派发action时，action里面想修改list数组时，应该需要使用immutable数组来进行修改，这样才不会导致数组类型变化，
+就不会导致错误了（让数据变为immutable类型就是为了不能被修改）
+（因为使用了redux-thunk，action可以是一个函数）
+dispatch(changeList(data.data));
+
+const changeList = (data) => ({
+    type: constants.CHANGE_LIST,
+    data: fromJS(data),
+    totalPage: Math.ceil(data.length / 10)
+});
+
+17.immutable数组也具备map方法，也能进行循环
+
+18.immutable类型对象通过调用toJS方法可以转化为普通js对象
+
+19.代码优化
+1.在actionCreators.js这个文件中，当一些action不需要导出供其他文件使用时，可以全部放在actionCreators.js的顶部或者底部（这里
+我们选择放在顶部），这样就会让代码结构更加清晰
+
+2.在header组件中多处需要使用到this.props.xx，此时我们就可以把这些需要用到的prop统一通过es6的解构赋值来进行赋值，便于
+使用每个prop时更加方便
+
+3.在reducer.js中通过判断action的type不同从而进行不同的处理，这里可以把if语句的写法改成switch的写法
+一般情况下每个case内部都要写break;但是也可以不写，前提是使用了return，return让后面的代码不再执行
+
+20.一个很巧妙的代码
+if (newList.length) {
+            for (let i = (page - 1) * 10; i < page * 10; i++) {
+                pageList.push(
+                    <SearchInfoItem key={newList[i]}>{newList[i]}</SearchInfoItem>
+                )
+            }
+        }
+
+如果不要最外层的if判断，会报错：key值的错误（是因为header组件一开始渲染的时候这段循环的代码会执行，此时还没有发起ajax
+请求，newList还是默认数据空数组，空数组取每项的值都是undefined，所以key值相同了，就会报警告；此时加上最外层的判断，就不会
+在第一次渲染时执行这段循环的代码，就会等到ajax请求获取到数据、newList有数据时再进行循环，这样就不会存在key值相同的问题了）
+
+21.reducer.js中修改数据的快捷方法
+原来的写法：
+case constants.CHANGE_LIST:
+            return state.set('list',action.data).set('totalPage',action.totalPage)
+现在的写法：
+case constants.CHANGE_LIST:
+            return state.merge({
+                list: action.data,
+                totalPage: action.totalPage
+            });
+这种写法性能更高
+
+22.使用css过渡动画做“换一批”前面图标的旋转动画
+其中使用到了'ref'，通过给组件添加这个属性，使得可以获取到react渲染出来的真实DOM节点
+
+23.避免无意义的ajax请求发送
+例如：
+在简书项目中输入框获取焦点时，只有list没有数据（第一次）时发送ajax请求，后面就不再发送请求，其实也就是控制执法起一次请求
+handleInputFocus(list) {
+            (list.size === 0) && dispatch(actionCreators.getList());
+            dispatch(actionCreators.searchFocus());
+        }
+
+24.当使用箭头函数去调用另一个函数时，可以这样写：
+原来的写法：
+()->{fun();}
+现在的写法：
+()=>fun()
+
+25.获取字符串中的数字的巧妙方法：
+let originAngle = spin.style.transform.replace(/[^0-9]/ig, '');
+意思就是将一个字符串中的非数字部分全部替换成''，那么剩下来的就只有数字了
+
+26.使用react的路由模块
+yarn add react-router-dom@4.3.1
+
+<Provider></Provider>，<BrowserRouter></BrowserRouter>中只能有一个标签，所以都需要使用一个div标签将内部所有其他
+标签包裹起来
+
+<Route path='/' exact component={Home}></Route>
+<Route path='/login' exact component={Login}></Route>
+当访问http://localhost:3000/时，也就是根路径，只会显示Home，但是访问http://localhost:3000/login时，会匹配到/和/login，所以
+Home和Login都会显示
+
+在这两个Route标签上分别加一个exact属性就能解决这个问题，访问什么路径就显示对应的内容
+意思是只有路径完全相等才会显示路径对应的内容
+
+BrowserRouter代表的是路由，Route代表的是一个个的路由规则
+
+27.在做一个页面时，是否应该将某个部分拆分成一个组件，这个力度要掌握好
+例如，网页上的一张大图，这时就不需要单独拆分成一个组件了，因为使其变成一个组件反而增加了代码，直接使用一个img标签
+来的更简洁；
+当某一块内容较为复杂时就可以拆分成一个组件了，组件同时也可以复用
+
+28.解决图片与文字顶部不对齐的一中解决办法：
+给图片额外设置下面的样式
+display: block;
+float: left;
+
+29.解决一行item需要正常显示（也就是说一行显示所有的item，但是每个item之间有一定的间距）
+以前是给每个item设置右外边距，然后设置最后一个item没有右外边距
+可以这样做：
+还是给每个item设置右外边距，但是整个包裹所有item的外层元素设置一个负的左外边距，为的是整体向左移，这样也能实现同样的布局
+
+30.并不是所有的组件都需要去修改store中的数据，像下面这个组件，只需要获取store的数据，而不需要去修改store中的数据，所以
+第二个参数是null
+const mapState = (state) => ({
+	list: state.getIn(['home', 'topicList'])
+});
+
+export default connect(mapState, null)(Topic);
+
+31.eslint中要求使用了img标签就需要写alt属性，如果不需要写内容，就给一个空字符串''
+
+32.简书右侧的推荐里面的图片做了了防盗链，所以需要在原有图片的基础上添加http才能访问这张图片
+原来的地址：
+//cdn2.jianshu.io/assets/web/banner-s-3-7123fd94750759acf7eca05b871e9d17.png
+添加http之后的地址：
+http://cdn2.jianshu.io/assets/web/banner-s-3-7123fd94750759acf7eca05b871e9d17.png
+
+33.写带有样式的组件时，有时需要从组件上获取属性的值在样式中使用，可以像下面这样写：
+组件部分内容：
+<RecommendItem imgUrl={item.get('imgUrl')} key={item.get('id')}/>
+样式部分内容：
+export const RecommendItem = styled.div`
+	width: 280px;
+	height: 50px;
+	background: url(${(props) => props.imgUrl});
+	background-size: contain;
+`;
+其实还是利用了``里面可以使用变量的功能
+
+34.JSON格式的文件要求键值对都需要使用双引号包裹（不能是单引号）
+数字，bool值可以不加引号
+
+35.不论是去取store中的数据，还是去修改store中的数据，都需要与store进行连接，只取数据只需要在connect函数写第一个参数即可，
+第二个参数为null；同理，只去修改数据只写第二个参数，第一个参数为null
+
+36.connect第二个参数返回的对象中的方法调用dispatch方法时，把需要修改的数据传递给reducer，如果没有采用分开reducer的
+方式书写，那么就会传递给那个唯一的reducer；如果是采用分开reducer的方式书写，那么就会传递给每个小的reducer，然后在
+小的reducer里面去做数据处理
+
+37.不仅fromJS会把一个普通js数组转化成一个immutable数组；List方法也会，但是List只会把外层变成immutable数组，并不会对
+里面的对象转化
+
+38.HTML DOM scrollTo() 方法：http://www.w3school.com.cn/jsref/met_win_scrollto.asp
+scrollTo() 方法可把内容滚动到指定的坐标
+参数	描述
+xpos	必需。要在窗口文档显示区左上角显示的文档的 x 坐标。
+ypos	必需。要在窗口文档显示区左上角显示的文档的 y 坐标。
+
+window.scrollTo(0,0)
+上面的代码可以回到顶部
+
+39.home组件显示后绑定scroll事件，组件移除后解绑事件，避免window.scroll这个全局事件对后续的其他组件产生影响
+componentDidMount() {
+        this.props.changeHomeData();
+        this.bindEvents();
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener('scroll', this.props.changeScrollTopShow);
+    }
+
+    bindEvents() {
+        window.addEventListener('scroll', this.props.changeScrollTopShow);
+    }
+
+40.当使用switch代替if的写法对不同类型的action进行处理时，仍然觉得代码很多的话，可以把最后修改数据的部分放在外面单独一个
+函数里面去写，把reducer的case里面原来的代码改成调用这个方法即可，例如：
+把
+case constants.CHANGE_HOME_DATA:
+            return state.merge({
+        topicList: fromJS(action.topicList),
+        articleList: fromJS(action.articleList),
+        recommendList: fromJS(action.recommendList)
+    });
+改成
+case constants.CHANGE_HOME_DATA:
+            return changeHomeData(state, action);
+
+41.代码优化
+只要store数据发生变化，组件都会重新进行渲染，及时某个组件无关的数据发生了变化也会导致这个组件重新渲染，这就不是很好了（
+性能不高）<我觉得这句话有问题，下面这句话可信度更高>
+可以使用shouldComponentUpdate这个生命周期函数来控制只有当前组件本身的数据发生了变化才进行重新渲染，避免虚拟DOM
+的比对，从而提高性能
+如果每个组件里面都去写这样一个生命周期函数，会显得很麻烦，于是react的fiber提供了一个新的组件：PureComponent，使用
+PureComponent替换Component，它俩的区别就是PureComponent在底层实现了shouldComponentUpdate这个生命周期函数
+
+但是使用PureComponent的前提是使用了immutable.js这个框架，否则会遇到一些坑
+
+42.单页应用里面不能使用a标签进行跳转，而应该使用路由进行跳转
+单页应用：整个网站在访问过程中只会加载一次html文件，减少一次html文件的请求，会让页面切换非常的流畅
+但是使用a标签，跳转一次就会重新加载一次html文件，而这时比较耗费性能的
+
+使用react-router-don这个第三方模块提供的Link组件替代a标签进行跳转，同时href属性要改成to的写法
+同时Link应该放在<BrowserRouter></BrowserRouter>的内部
+
+43.当不想包含标签的字符串被转义显示，而是将标签正确解析显示，这时候就不能直接把标签字符串直接向下面这样写了，因为这样写
+会把字符串原样的显示出来：
+<Content>{this.props.content}</Content>
+
+this.props.content是这样的一个字符串：
+"<img src='//upload-images.jianshu.io/upload_images/10295326-b7d6641a66c7fafc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/524'/><p><b>2017年，衡水中学考上清华北大的人数是176人</b></p>"
+
+而应该这样写：
+<Content
+	dangerouslySetInnerHTML={{__html: this.props.content}}
+/>
+
+44.带参数的路由
+<Route path="/detail/:id" exact component={Detail}></Route>
+
+上面的路由规则可以匹配：/detail/1
+/detail/匹配前半部分，后面的1匹配参数名为id的部分
+
+如何获取上一个页面传递的路由参数（动态路由获取参数：获取/后面的参数）
+通过下面这种方式：
+this.props.match.params.xx
+xx是具体的参数名
+
+45.另一种路由方式：
+<Route path="/detail" exact component={Detail}></Route>
+
+上面的路由规则可以匹配：/detail?id=1
+
+如何获取上一个页面传递的路由参数（获取?后面的参数）
+通过下面这种方式：
+this.props.location.search得到的是：'?id=1'
+这里获取到'?id=1'这样的字符串之后还要自己去处理获取到里面的1，有点麻烦，所以推荐使用动态路由的方式
+
+46.通过给组件添加ref属性获取到的是styledComponent，这个组件无法获取到我们需要的一些数据，但是可以使用innerRef这个属性
+，这样就可以从得到的真实DOM中获取到我们想要的信息了
+
+47.类似点击“登录”按钮跳转的实现可以像下面这样做：
+import { Redirect } from 'react-router-dom';
+
+class Login extends PureComponent {
+    render() {
+        const { loginStatus } = this.props;
+
+        if (!loginStatus) {
+            return (
+                <LoginWrapper>
+                    <LoginBox>
+                        <Input placeholder='账号' innerRef={(input) => {this.account = input}}/>
+                        <Input placeholder='密码' type='password' innerRef={(input) => {this.password = input}}/>
+                        <Button onClick={() => this.props.login(this.account, this.password)}>登陆</Button>
+                    </LoginBox>
+                </LoginWrapper>
+            )
+        }else {
+            return <Redirect to='/'/>
+        }
+    }
+}
+
+其中重点是根据是否登录的状态值来显示不同的组件，未登录显示登录组件，登录了就跳转路由显示'/'路由对应的组件
+
+48.规范写法：
+简书项目中有一个退出登录的功能，就需要在Header组件中的一个退出的组件（<NavItem className='right'>退出</NavItem>）
+上绑定一个点击事件（onClick={logout}），但是这是需要去修改Login组件相关的数据，所以应该在Header组件中引入Login组件下
+的actionCreators来使用Login的action做数据的修改；
+其实直接在Header这个组件里面的actionCreators来写logout这个action也可以，但是本着每个组件管理自身的数据的规则，还是应该
+把修改各自数据的action在各自的actionCreators里面去写，也便于代码的维护
+
+49.使用异步组件实现按需加载的想法
+yarn add react-loadable@5.4.0
+https://github.com/jamiebuilds/react-loadable
+
+进入首页只加载首页的代码，进入详情页只加载详情页的代码
+
+官网示例：
+import Loadable from 'react-loadable';
+import Loading from './my-loading-component';
+
+const LoadableComponent = Loadable({
+  loader: () => import('./my-component'),
+  loading: Loading,
+});
+
+export default class App extends React.Component {
+  render() {
+    return <LoadableComponent/>;
+  }
+}
+
+Loadable方法把一个普通组件变成一个异步组件，实现按需加载
+其中loader: () => import('./my-component')指的是要把哪个组件变成异步组件
+如果是加载同级的index.js文件，可以这样加载（两种方式）：
+loader: () => import('./index')
+loader: () => import('./')
+
+因为组件加载是需要时间的，所以loading: Loading的意思是使用哪个组件在真正组件加载完成前进行显示（这里也可以使用自己定义的
+组件，例如：
+loading() {
+  	return <div>正在加载</div>
+  }）
+
+最后的导出部分可以简写成一个无状态组件（不需要起名字，不需要继承某个类）
+export default () => <LoadableComponent/>
+
+在把一个组件变成异步组件之后，还需要把原来使用这个组件的地方改成这个组件对应的异步组件，这样才是真正使用了这个异步组件
+
+50.使用异步组件的一些问题：
+这是使用原来的Detail组件的写法
+componentDidMount() {
+        this.props.getDetail(this.props.match.params.id);
+    }
+使用异步组件之后，Detail不再是Route下面的直接组件了，就不能像上面那样写了，但是依然还是需要获取id这个值，可以改成
+下面这种写法
+添加一个方法的引入
+import { withRouter } from 'react-router-dom';
+把
+export default connect(mapState, mapDispatch)(Detail);
+改成
+export default connect(mapState, mapDispatch)(withRouter(Detail));
+这个意思是让Detail这个组件也有能力获取到Route的参数和内容
+
+最后在浏览器的Network栏目中可以看到进入首页后会加载bundle.js文件，这个文件里面是不包含详情页代码的，再点击某个详情进入
+详情页，此时又会加载一个1.chunk.js文件，这个文件就包含了详情页对应的组件的代码，这部分代码是被异步加载进来的
+
+51.项目上线（假设后台是使用php编写的）
+下载xampp这个软件，可以启动一个本地的80端口的apache服务器
+
+创建一个目录htdocs作为后台php的项目目录，里面有一个api文件夹，存了之前public目录下的api目录包含的json文件（这里使用
+json文件代替后台通过代码处理的到的要返回给前端的数据）
+
+把public目录下的api目录删除，因为这是用来模拟真实数据的，现在上线应该使用后台接口真正返回的数据
+并且在前端项目目录（jianshu 这个目录）下执行下面一条命令：
+npm run build
+
+然后把生成的build这个文件夹里面的内容全部复制一份到php的后台项目（一般命名为htdocs）中，访问localhost就能正确在浏览器
+访问我们的项目了
